@@ -1,0 +1,21 @@
+#!/bin/bash
+# Converts an OpenOffice thesaurus file (thes_xx.dat) to one compatible 
+# with VIM thesaurus.
+
+# Usage: cat file ./convert-openoffice-thesaurus-idx-to-vim > vim-thesaurus
+#
+# Where file is the path to an Open Office thesaurus idx file.
+#
+# For instance on SLACKWARE 
+#   I found it in /opt/libreoffice4.4/share/extensions/dict-fr/thes_fr.dat
+
+# Public domain - GrepSuzette 2015
+
+while read line; do
+    if [[ ${line:0:1} == '(' ]]; then
+        echo $line | sed -e 's/(.*)|\(.*\)/\1/' | tr '|' ','
+    else 
+        echo -n $line | sed -e 's/\(.*\)|.*/\1/'
+        echo -n ","
+    fi
+done
