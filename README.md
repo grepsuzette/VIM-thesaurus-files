@@ -33,16 +33,14 @@ VIM normally doesn't recognize multi-word synonyms.
    - tragedy
    - cataclysm
 
- Sure you get to manually remove the underscore if you
- choose one of these results, but by discarding them as in most
- thesaurus, we would get half of these interesting results.
+ By discarding them as in most thesaurus, we would get 
+ half of these interesting results.
 
  This also prevents synonyms for `10000` to return
  "ten" and "thousands" on two separate lines, whereas
- the one-liner "ten_thousands" is more readable (though you still have
- to edit it if you choose it). 
+ the one-liner "ten_thousands" is more readable.
 
-Additional language
+Additional languages
 =========================================================================
 
 The VIM thesaurus in French is provided already, 
