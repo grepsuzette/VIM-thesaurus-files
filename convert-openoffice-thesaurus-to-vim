@@ -1,21 +1,83 @@
 #!/bin/bash
 # Converts an OpenOffice thesaurus file (thes_xx.dat) to one compatible 
-# with VIM thesaurus.
+# with VIM thesaurus - Public domain
 
-# Usage: cat file ./convert-openoffice-thesaurus-idx-to-vim > vim-thesaurus
-#
-# Where file is the path to an Open Office thesaurus idx file.
-#
-# For instance on SLACKWARE 
-#   I found it in /opt/libreoffice4.4/share/extensions/dict-fr/thes_fr.dat
+# USAGE: cat FILE | ./convert-openoffice-thesaurus-idx-to-vim > vim-thesaurus
+# FILE being the path to an Open Office thesaurus dat file. For instance:
+# /opt/libreoffice4.4/share/extensions/dict-fr/thes_fr.dat
 
-# Public domain - GrepSuzette 2015
+# skip first line (it contains the encoding)
+read encoding
 
 while read line; do
+    # Libreoffice4.4 thesaurus .dat files' lines are organised in pairs:
+    # abâtardir|1
+    # (Verbe)|avilir|corrompre|dégénérer|dénaturer
+    # - The first part of the first line is the word entry, line ends with 1
+    # - On the second line, first comes the first word entry, then all 
+    #   synonyms to follow.
+
     if [[ ${line:0:1} == '(' ]]; then
-        echo $line | sed -e 's/(.*)|\(.*\)/\1/' | tr '|' ','
-    else 
-        echo -n $line | sed -e 's/\(.*\)|.*/\1/'
+        # Note 1: Some verbs or words in .dat files come with spaces.
+        #         For instance in french, "demander" != "se demander".
+        #         Since no language possibly use underscores, we 
+        #         shall replace all spaces with _. 
+        #         E.g. "se demander" becoming "se_demander".
+        #         
+        #         Add the underscore manually to allow VIM search
+        #         synonyms for a multi-word synonyms. Likewise, menus 
+        #         will return multi-word results with underscores
+        #         that you will have to remove manually.
+        #         
+        #         Though imperfect, this way will prevent 
+        #         synonyms for 10000 returning "ten" and
+        #         "thousands" on two different lines, instead
+        #         of "ten_thousands". In addition, it won't 
+        #         discard all these interesting synonyms.
+
+        # Note 2: We use comma to separate synonyms, while Vim 
+        #         recommands using spaces in its help. 
+        #         See the the technical comments underneath.
+
+        # (Verbe)|avilir|corrompre|dégénérer|dénaturer
+        echo $line | sed -e 's/(.*)|\(.*\)/\1/' \
+                         -e 's/ \?| \?/,/g' \
+                         -e 's/ /_/g'
+    else
+        # abâtardir|1
+        echo -n $line | sed -e 's/\(.*\)|.*/\1/' -e 's/ /_/g'
         echo -n ","
     fi
 done
+
+# Technical notes about VIM implementation
+# Sat Sep 12 08:48:10 UTC 2015
+# -------------------------------------------------------------------------
+# From vim documentation:
+#  "List of file names, separated by commas, that are used to lookup words
+#   for thesaurus completion commands i_CTRL-X_CTRL-T.  Each line in
+#   the file should contain words with similar meaning, separated by
+#   non-keyword characters (white space is preferred).  Maximum line
+#   length is 510 bytes." - VIM help (:help thesaurus)
+#
+# We checked the source to know more about the recommandations and the 
+# actual restrictions.
+#
+# edit.c for vim 7.4 has:
+#    while (!got_int && !compl_interrupted
+#              && !vim_fgets(buf, LSIZE, fp))
+#            
+# 1. vim_fgets() is used to read lines and returns TRUE when reaching EOL.
+# 2. in vim.h has   #define LSIZE       512
+# 
+# => it doesn't matter if we have lines more than 512B.
+#  Synonyms sitting upon the 512 characters boundary will get discarded 
+#  (i.e. no risk of truncated synonyms). Having very very long lines 
+#  _will_ make the search longer, though. However up to now we prefered 
+#  not to shorten them, because we think it's a good idea to put the 
+#  thesaurus files in e.g. /usr/share/dict for other softwares/scripts
+#  to make use of them.
+#
+# Also using spaces over commas (or any character) provides no acceleration 
+# of any sort (we checked find_word_start(), find_word_end(), and 
+# inspected the code recursively to make sure).
