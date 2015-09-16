@@ -16,12 +16,17 @@ VIM normally doesn't recognize multi-word synonyms.
  Since no language possibly use underscores, we 
  replaced all spaces with `_`. 
  
- Tip: to allow multi-words expression to be 
- searched, manually add an underscore before running 
- C-X C-t.
+ To allow multi-word expressions to be searched, use 
+ the included script: [multiword.vim](multiword.vim).
+ Simply put the file in your `.vim` directory and invoke
+ it from your `.vimrc` using:
+ ```vim
+ source ~/.vim/multiwordthesaurus.vim
+ ```
 
- For instance in this case, `act_of_god` will show up 
- the following synonyms: 
+ Using this script, if you place your cursor after `act of god`
+ and click C-x C-t, it will automatically be transformed
+ to `act_of_god` and the following synonyms will show up:
 
    - force_majeure
    - vis_major
@@ -33,12 +38,10 @@ VIM normally doesn't recognize multi-word synonyms.
    - tragedy
    - cataclysm
 
- By discarding them as in most thesaurus, we would get 
- half of these interesting results.
-
- This also prevents synonyms for `10000` to return
- "ten" and "thousands" on two separate lines, whereas
- the one-liner "ten_thousands" is more readable.
+ After choosing one, pressing C-y, escape, space or any 
+ closing punctuation mark will replace the underscores to
+ spaces.
+ 
 
 Additional languages
 =========================================================================
